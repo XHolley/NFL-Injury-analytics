@@ -66,7 +66,7 @@ export const projects = [
       "Predictive modeling workflow with scikit-learn and feature selection",
       "Documented, reproducible pipeline through Jupyter notebooks and saved artifacts",
     ],
-    github: "https://github.com/daniiprietoo/nfl-injury-analytics.git",
+    github: "https://github.com/XHolley/NFL-Injury-analytics.git",
     stack: ["Python", "nfl_data_py", "scikit-learn", "Pandas", "Jupyter"],
   },
 ];
