@@ -1,15 +1,10 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import sklearn
-import sklearn.linear_model
-import sklearn.model_selection
-import sklearn.calibration
-import sklearn.metrics
-import sklearn.feature_selection
-import sklearn.preprocessing
-import sklearn.decomposition
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 @st.cache_data
@@ -17,25 +12,29 @@ def load_data():
     clean_data = pd.read_csv('./data/processed/NFL_verse_training_data.csv')
     final_data = pd.read_csv('./data/processed/NFL_verse_final_training_data_after_encoding.csv')
     selected_data = pd.read_csv('./data/processed/NFL_verse_training_data_final_after_encoding_selected.csv')
-    y = pd.read_csv('./data/processed/y.csv')
+    y = pd.read_csv('./data/processed/y.csv').squeeze("columns")
     return clean_data, final_data, selected_data, y
 
-def train_model(data, y):
-    X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(data, y, test_size=0.2, random_state=42)
-    linr = sklearn.linear_model.LinearRegression()
-    
-    # Fit the model
-    linr.fit(X_train, y_train)
-    
-    # Make predictions
-    y_pred_train = linr.predict(X_train)
-    y_pred_test = linr.predict(X_test)
-    
-    # Calculate performance metrics
-    train_score = sklearn.metrics.r2_score(y_train, y_pred_train)
-    test_score = sklearn.metrics.r2_score(y_test, y_pred_test)
-    
-    return linr, train_score, test_score, y_pred_test, y_test
+def train_model(data, target):
+    X_train, X_test, y_train, y_test = train_test_split(
+        data,
+        target,
+        test_size=0.2,
+        random_state=42,
+        stratify=target
+    )
+    model = Pipeline(
+        steps=[
+            ("scaler", StandardScaler()),
+            ("classifier", LogisticRegression(max_iter=1000, random_state=42)),
+        ]
+    )
+    model.fit(X_train, y_train)
+    y_pred_train = model.predict(X_train)
+    y_pred_test = model.predict(X_test)
+    train_score = accuracy_score(y_train, y_pred_train)
+    test_score = accuracy_score(y_test, y_pred_test)
+    return model, train_score, test_score, y_pred_test, y_test
 
 # Load data
 clean_data, final_data, selected_data, y = load_data()
@@ -48,7 +47,7 @@ st.write("This is the report of our NFL injury prediction model. We used histori
 st.write("The model predicts injuries based on various factors and data extracted from the datasets.")
 st.write("The data used for training includes play-by-play data and schedule data.")
 st.write("We ended up using only Pass and Run plays for our model.")
-st.write("The model is trained using a Linear Regression algorithm.")
+st.write("The model is trained using a Logistic Regression classifier.")
 
 # Display processed data
 st.subheader('Processed Data')
@@ -76,11 +75,10 @@ st.write("This is the final data used for training the model.")
 st.dataframe(selected_data.head(10))
 
 # Model performance metrics
-y_pred_binary = (y_pred > 0.6).astype(int)
-accuracy = accuracy_score(y_test, y_pred_binary)
-precision = precision_score(y_test, y_pred_binary)
-recall = recall_score(y_test, y_pred_binary)
-f1 = f1_score(y_test, y_pred_binary)
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, zero_division=0)
+recall = recall_score(y_test, y_pred, zero_division=0)
+f1 = f1_score(y_test, y_pred, zero_division=0)
 
 st.subheader('Model Performance Metrics')
 col1, col2 = st.columns(2)
@@ -96,8 +94,6 @@ with col2:
     st.metric(label="F1 Score", value=f"{f1 * 100:.2f}%")
 
 # Model confusion matrix
-st.write("The confusion matrix shows the performance of the model on the test set.")
-st.write("Since Linear is not a classification model, we used the predicted values to create a confusion matrix.")
-st.write("We used a threshold of 0.6 to classify the predictions, values above are classified as injuries, and below are not injuries.")
+st.write("The confusion matrix shows the performance of the classifier on the test set.")
 st.subheader('Confusion Matrix')
 st.image('./visualizations/confusion_matrix.png', caption='Confusion Matrix')

@@ -9,17 +9,19 @@ A Python-based project for analyzing NFL injury data and trends.
 
 ## Installation and Setup for Contributors
 
-1. **Get Repository Access**
-   - Send your GitHub username to dani to be added as a collaborator
-   - Accept the collaboration invitation sent to your email
-
-2. **Clone the Repository**
+1. **Fork and Clone the Repository**
+   - Fork `https://github.com/daniiprietoo/nfl-injury-analytics` to your own GitHub account.
+   - Clone your fork:
    ```bash
    git clone https://github.com/yourusername/nfl-injury-analytics.git
    cd nfl-injury-analytics
    ```
+   - Add the original project as `upstream`:
+   ```bash
+   git remote add upstream https://github.com/daniiprietoo/nfl-injury-analytics.git
+   ```
 
-3. **Set Up Development Environment**
+2. **Set Up Development Environment**
    ```bash
    # Create and activate virtual environment
    python -m venv .venv
@@ -35,7 +37,8 @@ A Python-based project for analyzing NFL injury data and trends.
 1. **Before Starting New Work**
    ```bash
    git checkout main
-   git pull origin main
+   git fetch upstream
+   git merge upstream/main
    ```
 
 2. **Create a New Branch**
@@ -53,12 +56,12 @@ A Python-based project for analyzing NFL injury data and trends.
 
 4. **Push Your Changes**
    ```bash
-   git push origin feature/your-feature-name
+   git push -u origin feature/your-feature-name
    ```
 
 5. **Create Pull Request**
    - Go to the repository on GitHub
-   - Create a new Pull Request from your branch
+   - Create a new Pull Request from your branch in your fork to `daniiprietoo/nfl-injury-analytics:main`
    - Request review from team members
    - Merge after approval
 
@@ -66,7 +69,6 @@ A Python-based project for analyzing NFL injury data and trends.
 ## Branch Naming Convention
 
 - Features: `feature/description`
-
 
 
 
