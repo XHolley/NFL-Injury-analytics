@@ -1,18 +1,35 @@
 import streamlit as st
 import pandas as pd
+from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data" / "processed"
+VIS_DIR = BASE_DIR / "visualizations"
+
 
 @st.cache_data
 def load_data():
-    clean_data = pd.read_csv('./data/processed/NFL_verse_training_data.csv')
-    final_data = pd.read_csv('./data/processed/NFL_verse_final_training_data_after_encoding.csv')
-    selected_data = pd.read_csv('./data/processed/NFL_verse_training_data_final_after_encoding_selected.csv')
-    y = pd.read_csv('./data/processed/y.csv').squeeze("columns")
+    required_files = {
+        "clean_data": DATA_DIR / "NFL_verse_training_data.csv",
+        "final_data": DATA_DIR / "NFL_verse_final_training_data_after_encoding.csv",
+        "selected_data": DATA_DIR / "NFL_verse_training_data_final_after_encoding_selected.csv",
+        "target": DATA_DIR / "y.csv",
+    }
+    missing_files = [str(path) for path in required_files.values() if not path.exists()]
+    if missing_files:
+        raise FileNotFoundError(
+            "Missing required data files:\n" + "\n".join(missing_files)
+        )
+
+    clean_data = pd.read_csv(required_files["clean_data"])
+    final_data = pd.read_csv(required_files["final_data"])
+    selected_data = pd.read_csv(required_files["selected_data"])
+    y = pd.read_csv(required_files["target"]).squeeze("columns")
     return clean_data, final_data, selected_data, y
 
 def train_model(data, target):
@@ -37,9 +54,20 @@ def train_model(data, target):
     return model, train_score, test_score, y_pred_test, y_test
 
 # Load data
-clean_data, final_data, selected_data, y = load_data()
+try:
+    clean_data, final_data, selected_data, y = load_data()
+except FileNotFoundError as exc:
+    st.error(str(exc))
+    st.info("Add CSV files under `data/processed/` and rerun the app.")
+    st.stop()
+
 # Train the model
-model, train_score, test_score, y_pred, y_test = train_model(selected_data, y)
+try:
+    model, train_score, test_score, y_pred, y_test = train_model(selected_data, y)
+except ValueError as exc:
+    st.error(f"Model training failed: {exc}")
+    st.info("Check the target column in `y.csv` contains at least two classes.")
+    st.stop()
 
 # Create Streamlit app
 st.title('NFL Injury Prediction Report')
@@ -57,17 +85,17 @@ st.dataframe(clean_data.head(10))
 # Display the plots
 st.subheader('Data Visualizations of Pass or Run Plays')
 st.write("This section contains various visualizations that help understand the data better.")
-st.image('./visualizations/injuries_total.png', caption='Total Injuries')
-st.image('./visualizations/injuries_by_year.png', caption='Injuries by Position')
-st.image('./visualizations/injuries_by_surface.png', caption='Injuries by Surface')
-st.image('./visualizations/injuries_by_body_part.png', caption='Injuries by Body Part')
+st.image(str(VIS_DIR / 'injuries_total.png'), caption='Total Injuries')
+st.image(str(VIS_DIR / 'injuries_by_year.png'), caption='Injuries by Position')
+st.image(str(VIS_DIR / 'injuries_by_surface.png'), caption='Injuries by Surface')
+st.image(str(VIS_DIR / 'injuries_by_body_part.png'), caption='Injuries by Body Part')
 
 # Model training
 st.subheader('Model Training')
 st.write('Before training we first encoded the categorical variables and standardized the data.')
 st.dataframe(final_data.head(10))
 st.write("Then we performed an information gain analysis to see which features are most important for our model.")
-st.image('./visualizations/information_gain.png', caption='Information Gain Analysis')
+st.image(str(VIS_DIR / 'information_gain.png'), caption='Information Gain Analysis')
 st.write("We then split the data into training and testing sets (80-20).")
 st.write("We used the top 20 features selected by the information gain analysis:")
 st.dataframe(selected_data.columns)
@@ -96,4 +124,4 @@ with col2:
 # Model confusion matrix
 st.write("The confusion matrix shows the performance of the classifier on the test set.")
 st.subheader('Confusion Matrix')
-st.image('./visualizations/confusion_matrix.png', caption='Confusion Matrix')
+st.image(str(VIS_DIR / 'confusion_matrix.png'), caption='Confusion Matrix')
