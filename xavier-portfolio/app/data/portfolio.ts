@@ -69,6 +69,20 @@ export const projects = [
     github: "https://github.com/XHolley/NFL-Injury-analytics.git",
     stack: ["Python", "nfl_data_py", "scikit-learn", "Pandas", "Jupyter"],
   },
+  {
+    title: "Help Desk Ticketing System",
+    description:
+      "Full-stack support workflow modeled with a Vue 3/Vite SPA and a Node/Express API so recruiters can follow the end-to-end ticket lifecycle.",
+    highlights: [
+      "Vue 3 dashboard with live search plus status, priority, and category filters for fast ticket triage",
+      "Create, assign, reopen, close, and comment on tickets backed by an Express API with validation and a health check endpoint",
+      "Role-aware auth stubs and data model covering requester, assignee, priority, category, and status",
+      "Clean frontend/backend separation with Axios-powered REST calls and environment-aware API URLs",
+      "Supporting docs summarize resume bullets and interview talking points so the technical decisions are easy to share",
+    ],
+    github: "https://github.com/XHolley/Help-Desk-Ticketing-System.git",
+    stack: ["Vue 3", "Vite", "Vue Router", "Axios", "Node.js", "Express", "REST APIs"],
+  },
 ];
 
 export const skills = [
